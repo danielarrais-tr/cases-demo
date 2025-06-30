@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head><title>Teste Janela</title></head>
+<body>
+  <button onclick="abrir()">Abrir Janela</button>
+  <button onclick="fechar()">Fechar Janela</button>
+
+  <script>
+    let win;
+
+    function abrir() {
+      win = window.open("", "_blank", "width=400,height=400");
+      if (win) {
+        win.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head><title>Nova Janela</title></head>
+            <body>
+              <h2>Nova Janela</h2>
+              <button onclick="window.close()">Fechar esta janela</button>
+            </body>
+          </html>
+        `);
+        win.document.close();
+      }
+    }
+
+    function fechar() {
+      if (win && !win.closed) {
+        win.close();
+      }
+    }
+  </script>
+</body>
+</html>
