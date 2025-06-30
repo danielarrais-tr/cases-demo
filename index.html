@@ -17,7 +17,14 @@
             <head><title>Nova Janela</title></head>
             <body>
               <h2>Nova Janela</h2>
-              <button onclick="window.close()">Fechar esta janela</button>
+              <button onclick="fecharComDelay()">Fechar esta janela (com delay)</button>
+              <script>
+                function fecharComDelay() {
+                  setTimeout(() => {
+                    window.close();
+                  }, 3000);
+                }
+              </script>
             </body>
           </html>
         `);
