@@ -23,10 +23,52 @@
         return;
       }
 
-      const popupContent = `<!DOCTYPE html><html lang="en"><head><meta charset='UTF-8'><title>OAuth Provider</title><style>body { font-family: sans-serif; text-align: center; padding: 40px; } button { padding: 10px 20px; font-size: 16px; cursor: pointer; }</style></head><body><h2>Demo OAuth Login</h2><p>This popup simulates an OAuth provider login page.</p><button id='authorize'>Authorize and Redirect</button><script>window.onload = function() {document.getElementById('authorize').addEventListener('click', function () {if (window.opener) {window.opener.location.href = 'https://danielarrais-tr.github.io/cases-demo/#access_token=demo-token-123';}window.close();});};<\/script></body></html>`;
+      const popupContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset='UTF-8'>
+  <title>OAuth Provider</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 40px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h2>Demo OAuth Login</h2>
+  <p>This popup simulates an OAuth provider login page.</p>
+  <button id='authorize'>Authorize</button>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('authorize').addEventListener('click', function () {
+        window.location.href = 'https://danielarrais-tr.github.io/cases-demo/redirect.html#access_token=demo-token-123';
+      });
+    });
+  <\/script>
+</body>
+</html>`;
 
+      popup.document.open();
       popup.document.write(popupContent);
       popup.document.close();
+
+      const pollTimer = setInterval(() => {
+        try {
+          const href = popup.location.href;
+          if (href.includes("access_token")) {
+            const token = new URL(href).hash.split("access_token=")[1];
+            console.log("✅ Access token received:", token);
+            popup.close();
+            clearInterval(pollTimer);
+          }
+        } catch (e) {
+          // Ignore cross-origin errors
+        }
+
+        if (popup.closed) {
+          console.warn("Popup closed before authentication completed");
+          clearInterval(pollTimer);
+        }
+      }, 300);
     }
   </script>
 </body>
