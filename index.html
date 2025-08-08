@@ -1,39 +1,62 @@
 <!DOCTYPE html>
-<html>
-<head><title>Teste Janela</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OAuth Popup Simulation</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 40px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
 <body>
-  <button onclick="abrir()">Abrir Janela</button>
-  <button onclick="fechar()">Fechar Janela</button>
+  <h1>OAuth Login Simulation</h1>
+  <button onclick="openOAuthPopup()">Login with Demo OAuth</button>
 
   <script>
-    let win;
+    function openOAuthPopup() {
+      const popup = window.open(
+        '',
+        'OAuthLogin',
+        'width=500,height=600,left=200,top=100'
+      );
 
-    function abrir() {
-      win = window.open("", "_blank", "width=400,height=400");
-      if (win) {
-        win.document.write(`
-          <!DOCTYPE html>
-          <html>
-            <head><title>Nova Janela</title></head>
-            <body>
-              <h2>Nova Janela</h2>
-              <button onclick="fecharComDelay()">Fechar esta janela (com delay)</button>
-              <script>
-                function fecharComDelay() {
-                  window.close();
-                }
-              <\/script>
-            </body>
-          </html>
-        `);
-        win.document.close();
+      if (!popup) {
+        alert("Popup blocked! Please allow popups for this site.");
+        return;
       }
-    }
 
-    function fechar() {
-      if (win && !win.closed) {
-        win.close();
-      }
+      popup.document.write(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <title>OAuth Provider</title>
+          <style>
+            body { font-family: sans-serif; text-align: center; padding: 40px; }
+            button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+          </style>
+        </head>
+        <body>
+          <h2>Demo OAuth Login</h2>
+          <p>This popup simulates an OAuth provider login page.</p>
+          <button onclick="completeOAuth()">Authorize and Close</button>
+          <script>
+            function completeOAuth() {
+              if (window.opener) {
+                window.opener.postMessage({ success: true, token: 'demo-access-token' }, '*');
+              }
+              setTimeout(() => window.close(), 500); // simulate OAuth redirect delay
+            }
+          </script>
+        </body>
+        </html>
+      `);
+
+      window.addEventListener('message', function(e) {
+        if (e.data && e.data.success) {
+          alert("OAuth completed. Token: " + e.data.token);
+        }
+      });
     }
   </script>
 </body>
