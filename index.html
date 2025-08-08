@@ -23,34 +23,9 @@
         return;
       }
 
-      const popupContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset='UTF-8'>
-  <title>OAuth Provider</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 40px; }
-    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-  </style>
-</head>
-<body>
-  <h2>Demo OAuth Login</h2>
-  <p>This popup simulates an OAuth provider login page.</p>
-  <button id='authorize'>Authorize and Close</button>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      document.getElementById('authorize').addEventListener('click', function () {
-        if (window.opener) {
-          window.opener.postMessage({ success: true, token: 'demo-access-token' }, '*');
-        }
-        setTimeout(() => window.close(), 500);
-      });
-    });
-  <\/script>
-</body>
-</html>`;
+      // Escape the script end tag properly
+      const popupContent = `<!DOCTYPE html><html lang="en"><head><meta charset='UTF-8'><title>OAuth Provider</title><style>body { font-family: sans-serif; text-align: center; padding: 40px; } button { padding: 10px 20px; font-size: 16px; cursor: pointer; }</style></head><body><h2>Demo OAuth Login</h2><p>This popup simulates an OAuth provider login page.</p><button id='authorize'>Authorize and Close</button><script>window.onload = function() {document.getElementById('authorize').addEventListener('click', function () {if (window.opener) {window.opener.postMessage({ success: true, token: 'demo-access-token' }, '*');}setTimeout(() => window.close(), 500);});};<\/script></body></html>`;
 
-      popup.document.open();
       popup.document.write(popupContent);
       popup.document.close();
 
