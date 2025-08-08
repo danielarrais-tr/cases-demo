@@ -10,9 +10,11 @@
 </head>
 <body>
   <h1>OAuth Login Simulation</h1>
-  <button onclick="openOAuthPopup()">Login with Demo OAuth</button>
+  <button id="oauth-button">Login with Demo OAuth</button>
 
   <script>
+    document.getElementById("oauth-button").addEventListener("click", openOAuthPopup);
+
     function openOAuthPopup() {
       const popup = window.open('', 'OAuthLogin', 'width=500,height=600,left=200,top=100');
 
@@ -21,32 +23,32 @@
         return;
       }
 
-      const popupContent = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset='UTF-8'>
-          <title>OAuth Provider</title>
-          <style>
-            body { font-family: sans-serif; text-align: center; padding: 40px; }
-            button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-          </style>
-        </head>
-        <body>
-          <h2>Demo OAuth Login</h2>
-          <p>This popup simulates an OAuth provider login page.</p>
-          <button id='authorize'>Authorize and Close</button>
-          <script>
-            document.getElementById('authorize').onclick = function completeOAuth() {
-              if (window.opener) {
-                window.opener.postMessage({ success: true, token: 'demo-access-token' }, '*');
-              }
-              setTimeout(() => window.close(), 500);
-            }
-          </script>
-        </body>
-        </html>
-      `;
+      const popupContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset='UTF-8'>
+  <title>OAuth Provider</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 40px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h2>Demo OAuth Login</h2>
+  <p>This popup simulates an OAuth provider login page.</p>
+  <button id='authorize'>Authorize and Close</button>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('authorize').addEventListener('click', function () {
+        if (window.opener) {
+          window.opener.postMessage({ success: true, token: 'demo-access-token' }, '*');
+        }
+        setTimeout(() => window.close(), 500);
+      });
+    });
+  <\/script>
+</body>
+</html>`;
 
       popup.document.open();
       popup.document.write(popupContent);
