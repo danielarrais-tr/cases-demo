@@ -30,9 +30,7 @@
       popup.document.close();
 
       window.addEventListener('message', function(e) {
-        if (e.data && e.data.success) {
-          alert("OAuth completed. Token: " + e.data.token);
-        }
+        console.log("Foi");
       });
     }
   </script>
