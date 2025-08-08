@@ -14,22 +14,18 @@
 
   <script>
     function openOAuthPopup() {
-      const popup = window.open(
-        '',
-        'OAuthLogin',
-        'width=500,height=600,left=200,top=100'
-      );
+      const popup = window.open('', 'OAuthLogin', 'width=500,height=600,left=200,top=100');
 
       if (!popup) {
         alert("Popup blocked! Please allow popups for this site.");
         return;
       }
 
-      popup.document.write(`
+      const popupContent = `
         <!DOCTYPE html>
         <html lang="en">
         <head>
-          <meta charset="UTF-8">
+          <meta charset='UTF-8'>
           <title>OAuth Provider</title>
           <style>
             body { font-family: sans-serif; text-align: center; padding: 40px; }
@@ -39,18 +35,22 @@
         <body>
           <h2>Demo OAuth Login</h2>
           <p>This popup simulates an OAuth provider login page.</p>
-          <button onclick="completeOAuth()">Authorize and Close</button>
+          <button id='authorize'>Authorize and Close</button>
           <script>
-            function completeOAuth() {
+            document.getElementById('authorize').onclick = function completeOAuth() {
               if (window.opener) {
                 window.opener.postMessage({ success: true, token: 'demo-access-token' }, '*');
               }
-              setTimeout(() => window.close(), 500); // simulate OAuth redirect delay
+              setTimeout(() => window.close(), 500);
             }
           </script>
         </body>
         </html>
-      `);
+      `;
+
+      popup.document.open();
+      popup.document.write(popupContent);
+      popup.document.close();
 
       window.addEventListener('message', function(e) {
         if (e.data && e.data.success) {
