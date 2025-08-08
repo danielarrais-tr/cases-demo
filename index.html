@@ -1,75 +1,97 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>OAuth Popup Simulation</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 40px; }
-    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-  </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Simulação OAuth Popup - Janela Principal</title>
+    <style>
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 24px; line-height: 1.5; }
+        button { padding: 10px 16px; font-size: 15px; cursor: pointer; }
+        .row { margin: 12px 0; }
+        code { background: #f5f5f5; padding: 2px 4px; border-radius: 4px; }
+        .log { white-space: pre-wrap; padding: 12px; background: #fafafa; border: 1px solid #eee; border-radius: 8px; min-height: 80px; }
+    </style>
 </head>
 <body>
-  <h1>OAuth Login Simulation</h1>
-  <button id="oauth-button">Login with Demo OAuth</button>
+    <h1>Simulação de OAuth via Popup</h1>
+    <p>
+        Fluxo: clicar em Login → abre popup (<code>auth.html</code>) → preencher e submeter → callback (<code>callback.html</code>) envia evento para janela principal → popup fecha.
+    </p>
 
-  <script>
-    document.getElementById("oauth-button").addEventListener("click", openOAuthPopup);
+    <div class="row">
+        <button id="btn-login">Iniciar Login (Popup)</button>
+        <button id="btn-login-implicit">Iniciar Login (Implicit)</button>
+    </div>
 
-    function openOAuthPopup() {
-      const popup = window.open('', 'OAuthLogin', 'width=500,height=600,left=200,top=100');
+    <div class="row">
+        <button id="btn-current-url">Testar driver.getCurrentUrl() (simulado)</button>
+        <span id="current-url"></span>
+    </div>
 
-      if (!popup) {
-        alert("Popup blocked! Please allow popups for this site.");
-        return;
-      }
+    <div class="row">
+        <strong>Estado:</strong>
+        <div id="state" class="log"></div>
+    </div>
 
-      const popupContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset='UTF-8'>
-  <title>OAuth Provider</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 40px; }
-    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-  </style>
-</head>
-<body>
-  <h2>Demo OAuth Login</h2>
-  <p>This popup simulates an OAuth provider login page.</p>
-  <button id='authorize'>Authorize</button>
-  <script>
-    window.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('authorize').addEventListener('click', function () {
-        window.location.href = 'https://danielarrais-tr.github.io/cases-demo/redirect.html#access_token=demo-token-123';
-      });
-    });
-  <\/script>
-</body>
-</html>`;
+    <script src="oauth-sim.js"></script>
+    <script>
+        (function () {
+            const stateEl = document.getElementById('state');
+            const currentUrlEl = document.getElementById('current-url');
 
-      popup.document.open();
-      popup.document.write(popupContent);
-      popup.document.close();
+            const clientId = 'demo-client-id';
+            const popupWindowFeatures = 'height=520,width=420,menubar=no,location=yes,resizable=yes,scrollbars=yes,status=yes';
 
-      const pollTimer = setInterval(() => {
-        try {
-          const href = popup.location.href;
-          if (href.includes("access_token")) {
-            const token = new URL(href).hash.split("access_token=")[1];
-            console.log("✅ Access token received:", token);
-            popup.close();
-            clearInterval(pollTimer);
-          }
-        } catch (e) {
-          // Ignore cross-origin errors
-        }
+            function log(message, data) {
+                const time = new Date().toISOString();
+                stateEl.textContent += `[${time}] ${message}` + (data ? `\n${JSON.stringify(data, null, 2)}` : '') + "\n\n";
+            }
 
-        if (popup.closed) {
-          console.warn("Popup closed before authentication completed");
-          clearInterval(pollTimer);
-        }
-      }, 300);
-    }
-  </script>
+            function begin(options) {
+                return beginOAuth2(Object.assign({
+                    clientId: clientId,
+                    popup: true,
+                    pkce: true,
+                    portal: window.location.origin,
+                    redirectUri: new URL('callback.html', window.location.href).toString(),
+                    popupWindowFeatures
+                }, options));
+            }
+
+            document.getElementById('btn-login').addEventListener('click', async () => {
+                stateEl.textContent = '';
+                log('Iniciando beginOAuth2 (PKCE) com popup...');
+                try {
+                    const mgr = await begin({ pkce: true, implicit: false });
+                    log('Promessa resolvida na janela principal com token/usuário:', mgr);
+                } catch (err) {
+                    log('Erro no fluxo de autenticação (popup):', { message: err && err.message, name: err && err.name });
+                }
+            });
+
+            document.getElementById('btn-login-implicit').addEventListener('click', async () => {
+                stateEl.textContent = '';
+                log('Iniciando beginOAuth2 (implicit) com popup...');
+                try {
+                    const mgr = await begin({ pkce: false, implicit: true });
+                    log('Promessa resolvida na janela principal com token/usuário (implicit):', mgr);
+                } catch (err) {
+                    log('Erro no fluxo de autenticação (implicit):', { message: err && err.message, name: err && err.name });
+                }
+            });
+
+            document.getElementById('btn-current-url').addEventListener('click', () => {
+                // Isto simula a chamada do Selenium driver.getCurrentUrl() logo após o fechamento do popup.
+                try {
+                    const url = window.location.href;
+                    currentUrlEl.textContent = url;
+                    log('driver.getCurrentUrl() (simulado) retornou:', { url });
+                } catch (e) {
+                    log('driver.getCurrentUrl() (simulado) lançou erro:', { message: e.message });
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
+

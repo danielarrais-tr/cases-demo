@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Simulação OAuth Popup - Autorização</title>
+    <style>
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 24px; line-height: 1.5; }
+        input, button { padding: 10px 12px; font-size: 15px; }
+        form { display: grid; gap: 12px; max-width: 360px; }
+        .row { display: grid; gap: 6px; }
+        .actions { display: flex; gap: 8px; }
+        .log { white-space: pre-wrap; padding: 12px; background: #fafafa; border: 1px solid #eee; border-radius: 8px; min-height: 40px; }
+    </style>
+</head>
+<body>
+    <h2>Popup de Autorização (auth.html)</h2>
+    <p>Preencha as credenciais e autorize para continuar.</p>
+
+    <form id="auth-form">
+        <div class="row">
+            <label for="username">Usuário</label>
+            <input id="username" name="username" type="text" placeholder="usuario" value="user.demo" required>
+        </div>
+        <div class="row">
+            <label for="password">Senha</label>
+            <input id="password" name="password" type="password" placeholder="••••••" value="secret" required>
+        </div>
+        <div class="actions">
+            <button type="submit">Login</button>
+            <button id="btn-deny" type="button">Negar</button>
+        </div>
+    </form>
+
+    <div class="log" id="log"></div>
+
+    <script src="oauth-sim.js"></script>
+    <script>
+        (function () {
+            const logEl = document.getElementById('log');
+            function log(msg, data) {
+                const time = new Date().toISOString();
+                logEl.textContent += `[${time}] ${msg}` + (data ? `\n${JSON.stringify(data, null, 2)}` : '') + "\n\n";
+            }
+
+            const params = new URLSearchParams(location.search);
+            const authorizeParams = {
+                client_id: params.get('client_id'),
+                response_type: params.get('response_type'),
+                expiration: params.get('expiration'),
+                redirect_uri: params.get('redirect_uri'),
+                state: params.get('state'),
+                locale: params.get('locale'),
+                style: params.get('style'),
+                socialLoginProviderName: params.get('socialLoginProviderName'),
+                autoAccountCreateForSocial: params.get('autoAccountCreateForSocial') === 'true',
+                code_challenge: params.get('code_challenge'),
+                code_challenge_method: params.get('code_challenge_method'),
+                // para fluxo implicit
+                implicit: params.get('implicit') === 'true'
+            };
+
+            log('Parâmetros recebidos em auth.html:', authorizeParams);
+
+            document.getElementById('auth-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = (document.getElementById('username')).value.trim();
+                const password = (document.getElementById('password')).value.trim();
+                if (!username || !password) {
+                    log('Credenciais inválidas');
+                    return;
+                }
+                // Simular autorização positiva
+                if (authorizeParams.implicit) {
+                    // implicit: redireciona para callback com token no hash
+                    const token = generateFakeToken();
+                    const expiresIn = '3600';
+                    const ssl = 'true';
+                    const redirect = new URL(authorizeParams.redirect_uri);
+                    const state = encodeURIComponent(authorizeParams.state || '');
+                    const hash = `#access_token=${encodeURIComponent(token)}&expires_in=${expiresIn}&ssl=${ssl}&username=${encodeURIComponent(username)}&state=${state}`;
+                    redirect.hash = hash;
+                    location.assign(redirect.toString());
+                    return;
+                }
+                // pkce: código na query para troca por token na callback
+                const code = generateRandomString(window).slice(0, 12);
+                const original = new URL(authorizeParams.redirect_uri);
+                const qp = new URLSearchParams(original.search);
+                qp.set('code', code);
+                qp.set('state', authorizeParams.state || '');
+                original.search = '?' + qp.toString();
+                location.assign(original.toString());
+            });
+
+            document.getElementById('btn-deny').addEventListener('click', () => {
+                const redirect = new URL(authorizeParams.redirect_uri);
+                const qp = new URLSearchParams(redirect.search);
+                qp.set('error', 'access_denied');
+                qp.set('error_description', 'User denied access');
+                qp.set('state', authorizeParams.state || '');
+                redirect.search = '?' + qp.toString();
+                location.assign(redirect.toString());
+            });
+        })();
+    </script>
+</body>
+</html>
+
