@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Simulação OAuth Popup - Autorização</title>
+    <title>OAuth Popup Simulation - Authorization</title>
     <style>
         body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 24px; line-height: 1.5; }
         input, button { padding: 10px 12px; font-size: 15px; }
@@ -14,21 +14,21 @@
     </style>
 </head>
 <body>
-    <h2>Popup de Autorização (auth.html)</h2>
-    <p>Preencha as credenciais e autorize para continuar.</p>
+    <h2>Authorization Popup (auth.html)</h2>
+    <p>Fill the credentials and authorize to continue.</p>
 
     <form id="auth-form">
         <div class="row">
-            <label for="username">Usuário</label>
-            <input id="username" name="username" type="text" placeholder="usuario" value="user.demo" required>
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" placeholder="username" value="user.demo" required>
         </div>
         <div class="row">
-            <label for="password">Senha</label>
+            <label for="password">Password</label>
             <input id="password" name="password" type="password" placeholder="••••••" value="secret" required>
         </div>
         <div class="actions">
             <button type="submit">Login</button>
-            <button id="btn-deny" type="button">Negar</button>
+            <button id="btn-deny" type="button">Deny</button>
         </div>
     </form>
 
@@ -60,19 +60,19 @@
                 implicit: params.get('implicit') === 'true'
             };
 
-            log('Parâmetros recebidos em auth.html:', authorizeParams);
+            log('Parameters received in auth.html:', authorizeParams);
 
             document.getElementById('auth-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const username = (document.getElementById('username')).value.trim();
                 const password = (document.getElementById('password')).value.trim();
                 if (!username || !password) {
-                    log('Credenciais inválidas');
+                    log('Invalid credentials');
                     return;
                 }
-                // Simular autorização positiva
+                // Simulate positive authorization
                 if (authorizeParams.implicit) {
-                    // implicit: redireciona para callback com token no hash
+                    // implicit: redirect to callback with token in hash
                     const token = generateFakeToken();
                     const expiresIn = '3600';
                     const ssl = 'true';
@@ -83,7 +83,7 @@
                     location.assign(redirect.toString());
                     return;
                 }
-                // pkce: código na query para troca por token na callback
+                // pkce: code in query to exchange for token in the callback
                 const code = generateRandomString(window).slice(0, 12);
                 const original = new URL(authorizeParams.redirect_uri);
                 const qp = new URLSearchParams(original.search);

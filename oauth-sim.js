@@ -1,5 +1,5 @@
 /*
-  Utilitários para simular beginOAuth2/completeOAuth2 com popup.
+  Utilities to simulate beginOAuth2/completeOAuth2 with a popup.
 */
 
 function generateRandomString(win) {
@@ -94,7 +94,7 @@ async function beginOAuth2(options) {
   }
 
   if (pkce) {
-    // Simulação de code_challenge
+    // Simulated code_challenge
     authorizeUrlParams.code_challenge_method = 'S256';
     authorizeUrlParams.code_challenge = generateRandomString(win).slice(0, 32);
   }

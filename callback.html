@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Simulação OAuth Popup - Callback</title>
+    <title>OAuth Popup Simulation - Callback</title>
     <style>
         body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 24px; line-height: 1.5; }
         .log { white-space: pre-wrap; padding: 12px; background: #fafafa; border: 1px solid #eee; border-radius: 8px; min-height: 60px; }
@@ -12,7 +12,7 @@
 </head>
 <body>
     <h2>Callback (callback.html)</h2>
-    <p class="small">Esta página finaliza o fluxo: envia evento para a janela principal e fecha a popup.</p>
+    <p class="small">This page completes the flow: it sends an event to the main window and closes the popup.</p>
     <div id="log" class="log"></div>
 
     <script src="oauth-sim.js"></script>
@@ -24,7 +24,7 @@
                 logEl.textContent += `[${time}] ${msg}` + (data ? `\n${JSON.stringify(data, null, 2)}` : '') + "\n\n";
             }
 
-            // Esta função replica a semântica do completeOAuth2 simplificado.
+            // This function replicates the semantics of a simplified completeOAuth2.
             function completeOAuth2Like() {
                 try {
                     const search = location.search.replace(/^\?/, '');
@@ -40,20 +40,20 @@
                     const stateStorageKey = `ARCGIS_REST_JS_AUTH_STATE_${clientId}`;
 
                     if (!state) {
-                        log('Erro: state ausente.');
+                        log('Error: missing state.');
                         notifyAndClose({ error: 'oauth-error', errorMessage: 'Missing state' }, clientId);
                         return;
                     }
 
                     const savedStateId = localStorage.getItem(stateStorageKey);
                     if (!savedStateId) {
-                        log('Erro: state salvo não encontrado.');
+                        log('Error: saved state not found.');
                         notifyAndClose({ error: 'no-auth-state', errorMessage: 'No auth state' }, clientId);
                         return;
                     }
                     const parsed = typeof state === 'string' ? JSON.parse(state) : state;
                     if (parsed.id !== savedStateId) {
-                        log('Erro: state divergente.');
+                        log('Error: mismatched state.');
                         notifyAndClose({ error: 'mismatched-auth-state', errorMessage: 'Mismatched state' }, clientId);
                         return;
                     }
@@ -61,13 +61,13 @@
                     if (searchParams.error) {
                         const error = searchParams.error;
                         const errorMessage = searchParams.error_description || 'Unknown error';
-                        log('Erro retornado pelo servidor de autorização', { error, errorMessage });
+                        log('Error returned by the authorization server', { error, errorMessage });
                         notifyAndClose({ error, errorMessage }, clientId);
                         return;
                     }
 
                     if (isPkce && searchParams.code) {
-                        // Simula troca de código por token
+                        // Simulate exchanging code for token
                         const token = generateFakeToken();
                         const expires = new Date(Date.now() + 3600 * 1000);
                         const result = {
@@ -78,7 +78,7 @@
                             refreshToken: 'refresh-' + generateRandomString(window).slice(0, 8),
                             refreshTokenExpires: new Date(Date.now() + 7 * 24 * 3600 * 1000)
                         };
-                        log('PKCE concluído. Enviando evento para a janela principal e fechando.');
+                        log('PKCE completed. Sending event to the main window and closing.');
                         localStorage.removeItem(stateStorageKey);
                         notifyAndClose(result, clientId);
                         return;
@@ -91,16 +91,16 @@
                             expires: new Date(Date.now() + parseInt(hashParams.expires_in || '3600', 10) * 1000),
                             username: hashParams.username
                         };
-                        log('Implicit concluído. Enviando evento e fechando.');
+                        log('Implicit completed. Sending event and closing.');
                         localStorage.removeItem(stateStorageKey);
                         notifyAndClose(result, clientId);
                         return;
                     }
 
-                    log('Erro desconhecido no callback');
+                    log('Unknown error in callback');
                     notifyAndClose({ error: 'oauth-error', errorMessage: 'Unknown error' }, clientId);
                 } catch (e) {
-                    log('Exceção no callback', { message: e.message, stack: e.stack });
+                    log('Exception in callback', { message: e.message, stack: e.stack });
                     notifyAndClose({ error: 'oauth-error', errorMessage: e.message }, 'demo-client-id');
                 }
             }

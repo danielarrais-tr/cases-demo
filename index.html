@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Simulação OAuth Popup - Janela Principal</title>
+    <title>OAuth Popup Simulation - Main Window</title>
     <style>
         body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 24px; line-height: 1.5; }
         button { padding: 10px 16px; font-size: 15px; cursor: pointer; }
@@ -13,23 +13,23 @@
     </style>
 </head>
 <body>
-    <h1>Simulação de OAuth via Popup</h1>
+    <h1>OAuth via Popup Simulation</h1>
     <p>
-        Fluxo: clicar em Login → abre popup (<code>auth.html</code>) → preencher e submeter → callback (<code>callback.html</code>) envia evento para janela principal → popup fecha.
+        Flow: click Login → opens popup (<code>auth.html</code>) → fill and submit → callback (<code>callback.html</code>) sends an event to the main window → popup closes.
     </p>
 
     <div class="row">
-        <button id="btn-login">Iniciar Login (Popup)</button>
-        <button id="btn-login-implicit">Iniciar Login (Implicit)</button>
+        <button id="btn-login">Start Login (Popup)</button>
+        <button id="btn-login-implicit">Start Login (Implicit)</button>
     </div>
 
     <div class="row">
-        <button id="btn-current-url">Testar driver.getCurrentUrl() (simulado)</button>
+        <button id="btn-current-url">Test driver.getCurrentUrl() (simulated)</button>
         <span id="current-url"></span>
     </div>
 
     <div class="row">
-        <strong>Estado:</strong>
+        <strong>State:</strong>
         <div id="state" class="log"></div>
     </div>
 
@@ -60,34 +60,34 @@
 
             document.getElementById('btn-login').addEventListener('click', async () => {
                 stateEl.textContent = '';
-                log('Iniciando beginOAuth2 (PKCE) com popup...');
+                log('Starting beginOAuth2 (PKCE) with popup...');
                 try {
                     const mgr = await begin({ pkce: true, implicit: false });
-                    log('Promessa resolvida na janela principal com token/usuário:', mgr);
+                    log('Promise resolved in the main window with token/user:', mgr);
                 } catch (err) {
-                    log('Erro no fluxo de autenticação (popup):', { message: err && err.message, name: err && err.name });
+                    log('Error in the authentication flow (popup):', { message: err && err.message, name: err && err.name });
                 }
             });
 
             document.getElementById('btn-login-implicit').addEventListener('click', async () => {
                 stateEl.textContent = '';
-                log('Iniciando beginOAuth2 (implicit) com popup...');
+                log('Starting beginOAuth2 (implicit) with popup...');
                 try {
                     const mgr = await begin({ pkce: false, implicit: true });
-                    log('Promessa resolvida na janela principal com token/usuário (implicit):', mgr);
+                    log('Promise resolved in the main window with token/user (implicit):', mgr);
                 } catch (err) {
-                    log('Erro no fluxo de autenticação (implicit):', { message: err && err.message, name: err && err.name });
+                    log('Error in the authentication flow (implicit):', { message: err && err.message, name: err && err.name });
                 }
             });
 
             document.getElementById('btn-current-url').addEventListener('click', () => {
-                // Isto simula a chamada do Selenium driver.getCurrentUrl() logo após o fechamento do popup.
+                // This simulates the Selenium call to driver.getCurrentUrl() right after the popup closes.
                 try {
                     const url = window.location.href;
                     currentUrlEl.textContent = url;
-                    log('driver.getCurrentUrl() (simulado) retornou:', { url });
+                    log('driver.getCurrentUrl() (simulated) returned:', { url });
                 } catch (e) {
-                    log('driver.getCurrentUrl() (simulado) lançou erro:', { message: e.message });
+                    log('driver.getCurrentUrl() (simulated) threw error:', { message: e.message });
                 }
             });
         })();
