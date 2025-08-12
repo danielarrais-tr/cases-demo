@@ -49,10 +49,7 @@ function notifyAndClose(detail, clientId) {
     // ignore post-close race conditions
   }
   try {
-    console.log('notifyAndClose', detail, clientId);
-    setTimeout(() => {
-      window.close();
-    }, 10000);
+    window.close();
   } catch (_) {
     // ignore
   }
