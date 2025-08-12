@@ -29,6 +29,7 @@
         <div class="actions">
             <button type="submit">Login</button>
             <button id="btn-deny" type="button">Deny</button>
+            <button id="btn-close" type="button">Close</button>
         </div>
     </form>
 
@@ -101,6 +102,10 @@
                 qp.set('state', authorizeParams.state || '');
                 redirect.search = '?' + qp.toString();
                 location.assign(redirect.toString());
+            });
+
+            document.getElementById('btn-close').addEventListener('click', () => {
+                window.close();
             });
         })();
     </script>
