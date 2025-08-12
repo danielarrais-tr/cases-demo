@@ -20,12 +20,6 @@
 
     <div class="row">
         <button id="btn-login">Start Login (Popup)</button>
-        <button id="btn-login-implicit">Start Login (Implicit)</button>
-    </div>
-
-    <div class="row">
-        <button id="btn-current-url">Test driver.getCurrentUrl() (simulated)</button>
-        <span id="current-url"></span>
     </div>
 
     <div class="row">
@@ -37,7 +31,6 @@
     <script>
         (function () {
             const stateEl = document.getElementById('state');
-            const currentUrlEl = document.getElementById('current-url');
 
             const clientId = 'demo-client-id';
             const popupWindowFeatures = 'height=520,width=420,menubar=no,location=yes,resizable=yes,scrollbars=yes,status=yes';
@@ -69,27 +62,7 @@
                 }
             });
 
-            document.getElementById('btn-login-implicit').addEventListener('click', async () => {
-                stateEl.textContent = '';
-                log('Starting beginOAuth2 (implicit) with popup...');
-                try {
-                    const mgr = await begin({ pkce: false, implicit: true });
-                    log('Promise resolved in the main window with token/user (implicit):', mgr);
-                } catch (err) {
-                    log('Error in the authentication flow (implicit):', { message: err && err.message, name: err && err.name });
-                }
-            });
-
-            document.getElementById('btn-current-url').addEventListener('click', () => {
-                // This simulates the Selenium call to driver.getCurrentUrl() right after the popup closes.
-                try {
-                    const url = window.location.href;
-                    currentUrlEl.textContent = url;
-                    log('driver.getCurrentUrl() (simulated) returned:', { url });
-                } catch (e) {
-                    log('driver.getCurrentUrl() (simulated) threw error:', { message: e.message });
-                }
-            });
+            // Removed other demo buttons and handlers
         })();
     </script>
 </body>

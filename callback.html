@@ -33,7 +33,8 @@
                     const hashParams = decodeQueryString(hash);
 
                     const isPkce = !!searchParams.code;
-                    const stateRaw = isPkce ? searchParams.state : hashParams.state;
+                    // State may come via query (PKCE) or hash (implicit), including for error responses
+                    const stateRaw = isPkce ? (searchParams.state || hashParams.state) : (hashParams.state || searchParams.state);
                     const state = stateRaw ? JSON.parse(decodeURIComponent(stateRaw)) : undefined;
 
                     const clientId = 'demo-client-id';
@@ -58,9 +59,12 @@
                         return;
                     }
 
-                    if (searchParams.error) {
-                        const error = searchParams.error;
-                        const errorMessage = searchParams.error_description || 'Unknown error';
+                    // Errors may be returned via query (PKCE) or hash (implicit)
+                    const errorFromQuery = searchParams.error;
+                    const errorFromHash = hashParams.error;
+                    if (errorFromQuery || errorFromHash) {
+                        const error = errorFromQuery || errorFromHash;
+                        const errorMessage = (errorFromQuery ? searchParams.error_description : hashParams.error_description) || 'Unknown error';
                         log('Error returned by the authorization server', { error, errorMessage });
                         notifyAndClose({ error, errorMessage }, clientId);
                         return;

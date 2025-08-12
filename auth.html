@@ -96,6 +96,15 @@
 
             document.getElementById('btn-deny').addEventListener('click', () => {
                 const redirect = new URL(authorizeParams.redirect_uri);
+                if (authorizeParams.implicit) {
+                    // For implicit, error is returned via hash along with state
+                    const state = encodeURIComponent(authorizeParams.state || '');
+                    const hash = `#error=access_denied&error_description=${encodeURIComponent('User denied access')}&state=${state}`;
+                    redirect.hash = hash;
+                    location.assign(redirect.toString());
+                    return;
+                }
+                // For PKCE/code flow, error is returned via query along with state
                 const qp = new URLSearchParams(redirect.search);
                 qp.set('error', 'access_denied');
                 qp.set('error_description', 'User denied access');
