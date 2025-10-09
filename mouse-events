@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teste de event.isTrusted</title>
+  <style>
+    :root { --bg:#0b0f14; --card:#121821; --ink:#e6edf3; --muted:#9fb0c0; --ok:#1db954; --warn:#ffcc00; --bad:#ff6b6b; }
+    * { box-sizing: border-box; }
+    body{
+      margin:0; padding:24px; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background:linear-gradient(180deg, #0b0f14 0%, #0b1018 100%); color:var(--ink);
+    }
+    h1 { margin: 0 0 12px; font-size: 20px; letter-spacing: .2px; }
+    p  { margin: 8px 0; color: var(--muted) }
+    .wrap { display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 980px; margin: 0 auto; }
+    .card { background: var(--card); border: 1px solid #1b2430; border-radius: 14px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    button{
+      background:#1e293b; color:var(--ink); border:1px solid #314055; padding:10px 14px; border-radius:10px; cursor:pointer;
+      transition: transform .06s ease, background .2s ease, border-color .2s ease;
+      font-weight:600; font-size:14px;
+    }
+    button:hover { background:#243449; }
+    button:active{ transform: scale(.98); }
+    .primary   { background:#0e7aff; border-color:#1575ff; }
+    .danger    { background:#b91c1c; border-color:#dc2626; }
+    .muted     { background:#0f172a; border-color:#1f2a44; color:#c7d2fe; }
+    .pill { display:inline-flex; align-items:center; gap:6px; border:1px solid #253145; padding:6px 10px; border-radius:999px; background:#0f1824; color:#d7e2f0; }
+    code { background:#0f172a; padding:2px 6px; border-radius:6px; border:1px solid #1f2a44; }
+    table{ width:100%; border-collapse: collapse; margin-top: 8px; }
+    th, td{ padding:8px 10px; border-bottom:1px solid #1e2532; font-size: 13px; }
+    th{ text-align:left; color:#b8c4d4; position:sticky; top:0; background:linear-gradient(180deg, #121821 50%, #101620 100%); }
+    tbody tr:hover { background: #0f1520; }
+    .tag { font-size: 11px; padding: 2px 6px; border-radius: 6px; border: 1px solid #2b3649; background:#0e1522; color:#c0d0e4; display:inline-block;}
+    .true  { color: var(--ok); }
+    .false { color: var(--bad); }
+    .log { white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; color:#cfe3f5; }
+    .small { font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Teste de <code>event.isTrusted</code></h1>
+      <p>Use o botão abaixo e compare cliques manuais (usuário real) com cliques disparados via script. Observe a coluna <em>isTrusted</em>.</p>
+      <div class="row" style="margin-top:8px;">
+        <button id="target" class="primary" style="font-size:16px;padding:14px 18px;">Clique aqui</button>
+        <span class="pill small" id="ua"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <button id="doBtnClick">Simular <code>btn.click()</code></button>
+        <button id="dispatchMouseEvent">Dispatch <code>MouseEvent('click')</code></button>
+        <button id="dispatchPointerEvent">Dispatch <code>PointerEvent('click')</code></button>
+        <button id="actionsSeq" class="muted" title="Sequência down/up para ver a ordem de eventos">Dispatch sequência (down→up→click)</button>
+        <button id="clear" class="danger">Limpar log</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Horário</th>
+            <th>Evento</th>
+            <th>isTrusted</th>
+            <th>Origem</th>
+            <th>Detalhes</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <p class="small">Dica: abra o DevTools → Console para ver as mensagens também.</p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin:0 0 6px;">Como reproduzir rapidamente</h2>
+      <ol class="small">
+        <li><strong>Clique manualmente</strong> no botão <em>“Clique aqui”</em> e observe <code>isTrusted = true</code>.</li>
+        <li>Clique em <em>“Simular btn.click()”</em> ou <em>“Dispatch MouseEvent”</em> e observe <code>isTrusted = false</code>.</li>
+        <li>(Opcional) Use múltiplos monitores/zoom para notar possíveis diferenças de foco/viewport (não altera <code>isTrusted</code>, mas altera target real).</li>
+      </ol>
+      <p class="small">Em automação (Selenium/Playwright), cliques gerados pelo driver tendem a ser tratados como de usuário e aparecer com <code>isTrusted = true</code>.</p>
+    </div>
+  </div>
+
+  <script>
+    const byId = (id) => document.getElementById(id);
+    const tbody = byId('tbody');
+    const target = byId('target');
+    const ua = byId('ua');
+
+    ua.textContent = navigator.userAgent;
+
+    function nowTime(){
+      const d = new Date();
+      return d.toLocaleTimeString([], {hour12:false}) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+    }
+
+    function addRow({type, isTrusted, origin, details}){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${nowTime()}</td>
+        <td><span class="tag">${type}</span></td>
+        <td class="${isTrusted}">${isTrusted}</td>
+        <td>${origin || '-'}</td>
+        <td class="small">${details || ''}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    function logEvent(origin){
+      return function(e){
+        const details = [];
+        if ('pointerType' in e && e.pointerType) details.push('pointerType=' + e.pointerType);
+        if (e.button !== undefined) details.push('button=' + e.button);
+        if (e.clientX !== undefined) details.push(`x=${e.clientX}, y=${e.clientY}`);
+        const msg = `[${nowTime()}] ${origin} :: ${e.type} :: isTrusted=${e.isTrusted}`;
+        console.log(msg, e);
+        addRow({type: e.type, isTrusted: e.isTrusted, origin, details: details.join(' • ')});
+      }
+    }
+
+    // Eventos que vamos observar
+    const types = ['pointerdown','mousedown','pointerup','mouseup','click'];
+    types.forEach(t => target.addEventListener(t, logEvent('manual/js')));
+
+    // Botões de ação
+    byId('doBtnClick').addEventListener('click', () => {
+      target.click(); // gera click sintético (isTrusted=false)
+    });
+
+    byId('dispatchMouseEvent').addEventListener('click', () => {
+      const ev = new MouseEvent('click', { bubbles:true, cancelable:true, clientX: 50, clientY: 20 });
+      target.dispatchEvent(ev);
+    });
+
+    byId('dispatchPointerEvent').addEventListener('click', () => {
+      try{
+        const ev = new PointerEvent('click', { bubbles:true, cancelable:true, pointerType:'mouse', isPrimary:true });
+        target.dispatchEvent(ev);
+      } catch (err){
+        console.warn('PointerEvent não suportado:', err);
+      }
+    });
+
+    byId('actionsSeq').addEventListener('click', () => {
+      // Sequência sintética típica (down -> up -> click)
+      target.dispatchEvent(new PointerEvent('pointerdown', { bubbles:true, cancelable:true, pointerType:'mouse', isPrimary:true }));
+      target.dispatchEvent(new MouseEvent('mousedown', { bubbles:true, cancelable:true }));
+      target.dispatchEvent(new PointerEvent('pointerup', { bubbles:true, cancelable:true, pointerType:'mouse', isPrimary:true }));
+      target.dispatchEvent(new MouseEvent('mouseup', { bubbles:true, cancelable:true }));
+      target.dispatchEvent(new MouseEvent('click', { bubbles:true, cancelable:true }));
+    });
+
+    byId('clear').addEventListener('click', () => {
+      tbody.innerHTML = '';
+      console.clear();
+    });
+  </script>
+</body>
+</html>
