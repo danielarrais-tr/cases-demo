@@ -1,19 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-br">
 <head>
   <meta charset="utf-8" />
-  <title>Mock Upload – mesma estrutura/IDs</title>
+  <title>Mock Upload — foco no checkbox</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* Estilos só pra ficar parecido e expor cenários de teste */
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f6f7fb; margin:0; padding:24px; }
-    .panel { max-width: 980px; margin: 0 auto; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; box-shadow: 0 6px 20px rgba(0,0,0,.06); }
-    .controls { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
-    .controls button { padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; background:#fff; cursor:pointer; }
-    .controls button:active { transform: translateY(1px); }
-    .log { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#111827; color:#d1d5db; border-radius:8px; padding:12px; height:160px; overflow:auto; white-space:pre-wrap; }
+    .wrap { max-width: 960px; margin: 0 auto; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; }
 
-    /* ---- Área do seu componente (mantendo classes/IDs) ---- */
+    /* ===== Mesmas classes/IDs do snippet ===== */
     a-form { display:block; }
 
     .fileUpload--Pdqo5 {
@@ -35,53 +30,45 @@
       cursor:pointer;
       user-select:none;
     }
-    .fileUpload_inner--JDKn9:focus { outline: 2px solid #6366f1; outline-offset: 3px; }
+    a-p { display:block; }
 
-    /* Checkbox estilo leve para visualizar */
     .ap-checkbox-container { display:flex; align-items:center; gap:10px; margin-top:12px; }
-    .ap-checkbox { position:relative; width:24px; height:24px; display:block; }
-    .ap-checkbox-input { position:absolute; inset:0; opacity:0; }
-    .Appkit4-icon.icon-checkbox-deselected-fill::before {
-      content:"☐";
-      display:inline-block;
-      line-height:24px;
-      width:24px; height:24px;
-      text-align:center;
-      font-size:18px;
+    .ap-checkbox { position:relative; width:auto; height:24px; display:flex; align-items:center; gap:8px; }
+    .a-hidden-accessibility { position:relative; width:24px; height:24px; }
+
+    /* Input “visível para acessibilidade”, mas sem ocupar layout visual */
+    .ap-checkbox-input {
+      position:absolute; inset:0;
+      opacity:0; /* ainda recebe foco e eventos via label */
     }
+
+    /* Ícone visual do checkbox — controlado por data-checked */
+    .Appkit4-icon.icon-checkbox-deselected-fill {
+      width:24px; height:24px; line-height:24px;
+      display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid #9ca3af; border-radius:4px;
+      font-size:16px; user-select:none;
+    }
+    .Appkit4-icon.icon-checkbox-deselected-fill::before { content: ""; }
+    .Appkit4-icon.icon-checkbox-deselected-fill[data-checked="true"] {
+      border-color:#4f46e5;
+      box-shadow: 0 0 0 2px rgba(79,70,229,.15) inset;
+    }
+    .Appkit4-icon.icon-checkbox-deselected-fill[data-checked="true"]::before {
+      content: "✓";
+      font-weight:700;
+    }
+
     .icon-checkbox-backdrop-outline { display:none; }
-    .ap-checkbox-input:checked + .Appkit4-icon.icon-checkbox-deselected-fill::before { content:"☑"; }
+    .ap-checkbox-label { cursor:pointer; }
 
     .ap-checkbox-disabled { opacity:.5; cursor:not-allowed; }
-
-    /* Cenários simulados para o input real */
-    .hidden-display { display:none !important; }
-    .hidden-visibility { visibility:hidden !important; }
-    .hidden-opacity { opacity:0 !important; pointer-events:none; }
-    .offscreen { position:absolute !important; left:-10000px !important; top:auto !important; width:1px !important; height:1px !important; overflow:hidden !important; }
-
-    /* Drop feedback */
-    .fileUpload--drag { border-color:#6b7280; background:#eef2ff; }
+    .ap-checkbox-disabled .ap-checkbox-label { cursor:not-allowed; }
   </style>
 </head>
 <body>
-  <div class="panel">
-    <h1>Mock de Upload (mesmas IDs/classes)</h1>
-    <p>Use os botões abaixo para alternar como o <code>&lt;input type="file"&gt;</code> “real” se apresenta. O log mostra cliques e mudanças de estado.</p>
-
-    <div class="controls">
-      <button id="btn-display-none">Aplicar display:none</button>
-      <button id="btn-visibility-hidden">Aplicar visibility:hidden</button>
-      <button id="btn-opacity-0">Aplicar opacity:0</button>
-      <button id="btn-offscreen">Mover offscreen</button>
-      <button id="btn-reset">Resetar (visível)</button>
-      <button id="btn-click-real">Tentar clicar no input real via JS</button>
-    </div>
-
-    <!-- LOG -->
-    <div class="log" id="log"></div>
-
-    <!-- ===== SUA ESTRUTURA ===== -->
+  <div class="wrap">
+    <!-- ===== SUA ESTRUTURA FIEL ===== -->
     <a-form
       data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]"
       data-x-testrigor-xpath-short="//div[@id='My_Data_App_DocumentLibrary_AddData_ModalUploadData_Modal']/div[1]/div[2]/form[1]"
@@ -102,13 +89,13 @@
            data-x-testrigor-xpath-short="//div[@id='My_Data_App_DocumentLibrary_AddData_ModalUploadData_Modal']/div[1]/div[2]/form[1]/div[1]"
            background-color="rgb(242, 242, 242)" data-x-testrigor-css-display="flex">
 
-        <!-- INPUT REAL (mesmo id) -->
+        <!-- INPUT REAL (mesmo id), oculto por display:none como no snippet -->
         <input id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_File_Upload_Field"
                multiple type="file" tabindex="-1" style="display: none;"
                data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]/div[1]/input[1]"
                data-x-testrigor-xpath-short="//input[@id='My_Data_App_DocumentLibrary_AddData_ModalUploadData_File_Upload_Field']">
 
-        <!-- BOTÃO FAKE QUE CHAMA O INPUT REAL -->
+        <!-- “FAKE BUTTON” (mesma classe) -->
         <div role="button" tabindex="0" class="fileUpload_inner--JDKn9"
              data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]/div[1]/div[1]">
           <a-p data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]/div[1]/div[1]/p[1]">
@@ -118,34 +105,49 @@
         </div>
       </div>
 
-      <!-- Checkboxes -->
+      <!-- CHECKBOXES -->
       <div
         data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]/div[2]">
-        <div class="ap-checkbox-container" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Unzipcheckbox" data-theme="black">
-          <div class="ap-checkbox">
+
+        <!-- HABILITADO -->
+        <div class="ap-checkbox-container" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Unzipcheckbox" data-theme="black"
+             data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]/div[2]/div[1]"
+             data-x-testrigor-xpath-short="//div[@id='My_Data_App_DocumentLibrary_AddData_ModalUploadData_Unzipcheckbox']">
+          <div class="ap-checkbox"
+               data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]/div[2]/div[1]/div[1]">
             <div class="a-hidden-accessibility">
               <input type="checkbox" role="checkbox" aria-live="assertive"
                      aria-label="Unzip any compressed files" id="checkbox-7"
-                     tabindex="0" class="ap-checkbox-input" value="">
+                     tabindex="0" class="ap-checkbox-input" value=""
+                     data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]/div[2]/div[1]/div[1]/div[1]/input[1]">
             </div>
             <span class="Appkit4-icon icon-checkbox-deselected-fill" aria-hidden="true"></span>
             <span class="icon-checkbox-backdrop-outline" aria-hidden="true"></span>
           </div>
-          <label class="ap-checkbox-label" for="checkbox-7" aria-hidden="true">Unzip any compressed files</label>
+          <label class="ap-checkbox-label" for="checkbox-7" aria-hidden="true"
+                 data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]/div[2]/div[1]/label[1]">
+            Unzip any compressed files
+          </label>
         </div>
 
-        <div class="ap-checkbox-container MDDCheckbox" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Mddcheckbox" data-theme="black">
-          <div class="ap-checkbox ap-checkbox-disabled">
+        <!-- DESABILITADO -->
+        <div class="ap-checkbox-container MDDCheckbox" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Mddcheckbox" data-theme="black"
+             data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]/div[2]/div[2]"
+             data-x-testrigor-xpath-short="//div[@id='My_Data_App_DocumentLibrary_AddData_ModalUploadData_Mddcheckbox']">
+          <div class="ap-checkbox ap-checkbox-disabled"
+               data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]/div[2]/div[2]/div[1]">
             <div class="a-hidden-accessibility">
               <input type="checkbox" role="checkbox" aria-live="assertive"
                      aria-label="Allow Workspace asset metadata to be discovered outside this Workspace"
                      aria-disabled="true" aria-checked="false" id="checkbox-8"
-                     tabindex="0" disabled class="ap-checkbox-input" value="">
+                     tabindex="0" disabled class="ap-checkbox-input" value=""
+                     data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]/div[2]/div[2]/div[1]/div[1]/input[1]">
             </div>
             <span class="Appkit4-icon icon-checkbox-deselected-fill" aria-hidden="true"></span>
             <span class="icon-checkbox-backdrop-outline" aria-hidden="true"></span>
           </div>
-          <label class="ap-checkbox-label" for="checkbox-8" aria-hidden="true">
+          <label class="ap-checkbox-label" for="checkbox-8" aria-hidden="true"
+                 data-x-testrigor-xpath="/html[1]/body[1]/div[2]/div[1]/div[1]/div[2]/form[1]/div[2]/div[2]/label[1]">
             Allow Workspace asset metadata to be discovered outside this Workspace
           </label>
         </div>
@@ -154,111 +156,50 @@
   </div>
 
   <script>
-    const $ = (sel) => document.querySelector(sel);
-    const log = (msg) => {
-      const el = $('#log');
-      const stamp = new Date().toISOString().replace('T',' ').replace('Z','');
-      el.textContent += `[${stamp}] ${msg}\n`;
-      el.scrollTop = el.scrollHeight;
-    };
-
-    const fileInput = document.getElementById('My_Data_App_DocumentLibrary_AddData_ModalUploadData_File_Upload_Field');
+    // “Fake” chama o input real (mantendo comportamento do snippet)
+    const realInput = document.getElementById('My_Data_App_DocumentLibrary_AddData_ModalUploadData_File_Upload_Field');
     const fakeButton = document.querySelector('.fileUpload_inner--JDKn9');
-    const dropZone = document.querySelector('.fileUpload--Pdqo5');
-
-    // Simular comportamento de UI real: clicar no "fake" dispara o input real
-    const openPicker = () => {
-      try {
-        log('Clique no FAKE -> tentando chamar input.click()');
-        fileInput.click();
-      } catch (e) {
-        log('ERRO ao chamar input.click(): ' + e);
-      }
-    };
-
-    // Drag & drop mínimo
-    ['dragenter', 'dragover'].forEach(evt => {
-      dropZone.addEventListener(evt, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropZone.classList.add('fileUpload--drag');
-      });
-    });
-    ;['dragleave', 'drop'].forEach(evt => {
-      dropZone.addEventListener(evt, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropZone.classList.remove('fileUpload--drag');
-      });
-    });
-    dropZone.addEventListener('drop', (e) => {
-      const files = e.dataTransfer.files;
-      log(`Arquivos soltos: ${files.length}`);
-    });
-
     fakeButton.addEventListener('click', (e) => {
       e.preventDefault();
-      openPicker();
+      try { realInput.click(); } catch {}
     });
     fakeButton.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        openPicker();
+        try { realInput.click(); } catch {}
       }
     });
 
-    fileInput.addEventListener('change', () => {
-      const names = [...fileInput.files].map(f => f.name).join(', ');
-      log(`Input REAL disparou "change": ${fileInput.files.length} arquivo(s) -> ${names || '(sem nomes)'}`);
-    });
+    // Checkbox visual: como o input está em outra hierarquia, espelhamos estado via JS.
+    function bindCheckboxVisual(inputId) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const icon = input.closest('.ap-checkbox')?.querySelector('.Appkit4-icon.icon-checkbox-deselected-fill');
+      if (!icon) return;
 
-    // ---- Controles de cenário ----
-    const removeAllVisibilityClasses = () => {
-      fileInput.classList.remove('hidden-display','hidden-visibility','hidden-opacity','offscreen');
-      fileInput.style.display = ''; // também limpa inline do exemplo
-    };
+      const sync = () => {
+        icon.setAttribute('data-checked', String(input.checked));
+        input.setAttribute('aria-checked', String(input.checked));
+      };
 
-    $('#btn-display-none').addEventListener('click', () => {
-      removeAllVisibilityClasses();
-      fileInput.classList.add('hidden-display');
-      log('Cenário: display:none aplicado ao input real');
-    });
+      // estado inicial
+      sync();
 
-    $('#btn-visibility-hidden').addEventListener('click', () => {
-      removeAllVisibilityClasses();
-      fileInput.classList.add('hidden-visibility');
-      log('Cenário: visibility:hidden aplicado ao input real');
-    });
+      // mudanças pelo usuário (label ou teclado)
+      input.addEventListener('change', sync);
 
-    $('#btn-opacity-0').addEventListener('click', () => {
-      removeAllVisibilityClasses();
-      fileInput.classList.add('hidden-opacity');
-      log('Cenário: opacity:0 + pointer-events:none aplicado ao input real');
-    });
-
-    $('#btn-offscreen').addEventListener('click', () => {
-      removeAllVisibilityClasses();
-      fileInput.classList.add('offscreen');
-      log('Cenário: input real movido para fora da viewport (offscreen)');
-    });
-
-    $('#btn-reset').addEventListener('click', () => {
-      removeAllVisibilityClasses();
-      log('Cenário: reset -> input real visível (exceto style inline original "display:none" será removido)');
-    });
-
-    // Forçar clique direto no input real (simula automação que ignora o fake)
-    $('#btn-click-real').addEventListener('click', () => {
-      try {
-        log('Tentando clicar DIRETAMENTE no input real via JS');
-        fileInput.click();
-      } catch (e) {
-        log('ERRO ao clicar no input real: ' + e);
+      // clique direto no ícone também alterna (quando habilitado)
+      if (!input.disabled) {
+        icon.addEventListener('click', (e) => {
+          e.preventDefault();
+          input.checked = !input.checked;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
       }
-    });
+    }
 
-    // Estado inicial fiel ao snippet: input oculto via inline style
-    log('Init: input real começa com style="display:none" (igual ao snippet). Use os botões para alternar estados.');
+    bindCheckboxVisual('checkbox-7'); // habilitado
+    bindCheckboxVisual('checkbox-8'); // desabilitado (click no ícone é ignorado)
   </script>
 </body>
 </html>
