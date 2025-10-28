@@ -62,7 +62,9 @@
       clip: rect(0, 0, 0, 0);
     }
 
-    /* Real Checkbox Input (hidden) */
+    /* Real Checkbox Input (hidden) - BUG REPRODUCTION
+       The input has zero dimensions making it invisible to WebDriver
+       even though the visual fake checkbox is visible */
     .ap-checkbox-input {
       position: absolute;
       opacity: 0;
@@ -70,6 +72,7 @@
       height: 0;
       margin: 0;
       padding: 0;
+      /* This causes WebDriver to consider the element not clickable */
     }
 
     /* Fake Checkbox (Icon) */
@@ -130,59 +133,44 @@
   </style>
 </head>
 <body>
-  <a-form>
-    <div>
-      <!-- First Checkbox: Unzip any compressed files -->
-      <div class="ap-checkbox-container" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Unzipcheckbox" data-theme="black">
-        <div class="ap-checkbox">
-          <div class="a-hidden-accessibility">
-            <input
-              type="checkbox"
-              role="checkbox"
-              aria-live="assertive"
-              aria-label="Unzip any compressed files"
-              id="checkbox-7"
-              tabindex="0"
-              class="ap-checkbox-input"
-              value="">
-          </div>
-          <span class="icon-checkbox-deselected-fill" aria-hidden="true" id=""></span>
-          <span class="icon-checkbox-backdrop-outline" aria-hidden="true"></span>
-        </div>
-        <label class="ap-checkbox-label" for="checkbox-7" aria-hidden="true">
-          Unzip any compressed files
-        </label>
+  <div style="padding: 20px; background-color: #f5f5f5;">
+    <div style="background-color: white; max-width: 700px; margin: 0 auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <div style="padding: 20px; border-bottom: 1px solid #ddd;">
+        <h2 style="margin: 0; font-size: 20px;">Upload Data Files</h2>
       </div>
-
-      <!-- Second Checkbox: Allow Workspace asset metadata (Disabled) -->
-      <div class="ap-checkbox-container MDDCheckbox" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Mddcheckbox" data-theme="black">
-        <div class="ap-checkbox ap-checkbox-disabled">
-          <div class="a-hidden-accessibility">
-            <input
-              type="checkbox"
-              role="checkbox"
-              aria-live="assertive"
-              aria-label="Allow Workspace asset metadata to be discovered outside this Workspace"
-              aria-disabled="true"
-              aria-checked="false"
-              id="checkbox-8"
-              tabindex="0"
-              disabled
-              class="ap-checkbox-input"
-              value="">
+      <div style="padding: 20px;">
+        <a-form>
+          <div role="presentation" style="background-color: #f2f2f2; padding: 60px 20px; text-align: center; margin-bottom: 20px; border-radius: 4px; border: 2px dashed #ccc;">
+            <p style="margin: 0; font-size: 16px; color: #666;">
+              Drag and drop, <span style="text-decoration: underline; cursor: pointer;">or choose your file</span>
+            </p>
           </div>
-          <span class="icon-checkbox-deselected-fill" aria-hidden="true" id=""></span>
-          <span class="icon-checkbox-backdrop-outline" aria-hidden="true"></span>
-        </div>
-        <label class="ap-checkbox-label" for="checkbox-8" aria-hidden="true">
-          Allow Workspace asset metadata to be discovered outside this Workspace
-        </label>
+          <div>
+            <div class="ap-checkbox-container" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Unzipcheckbox" data-theme="black">
+              <div class="ap-checkbox">
+                <div class="a-hidden-accessibility">
+                  <input type="checkbox" role="checkbox" aria-live="assertive" aria-label="Unzip any compressed files" id="checkbox-7" tabindex="0" class="ap-checkbox-input" value="">
+                </div><span class="Appkit4-icon icon-checkbox-deselected-fill" aria-hidden="true" id=""></span><span class="icon-checkbox-backdrop-outline" aria-hidden="true"></span>
+              </div><label class="ap-checkbox-label" for="checkbox-7" aria-hidden="true">Unzip any compressed files</label>
+            </div>
+            <div class="ap-checkbox-container MDDCheckbox" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Mddcheckbox" data-theme="black">
+              <div class="ap-checkbox ap-checkbox-disabled">
+                <div class="a-hidden-accessibility">
+                  <input type="checkbox" role="checkbox" aria-live="assertive" aria-label="Allow Workspace asset metadata to be discovered outside this Workspace" aria-disabled="true" aria-checked="false" id="checkbox-8" tabindex="0" disabled class="ap-checkbox-input" value="">
+                </div><span class="Appkit4-icon icon-checkbox-deselected-fill" aria-hidden="true" id=""></span><span class="icon-checkbox-backdrop-outline" aria-hidden="true"></span>
+              </div><label class="ap-checkbox-label" for="checkbox-8" aria-hidden="true">Allow Workspace asset metadata to be discovered outside this Workspace</label>
+            </div>
+          </div>
+        </a-form>
+      </div>
+      <div style="padding: 20px; border-top: 1px solid #ddd; display: flex; justify-content: space-between;">
+        <button style="padding: 8px 20px; background: transparent; border: none; cursor: pointer; font-size: 16px;">Cancel</button>
+        <button style="padding: 8px 20px; background: rgba(208, 74, 2, 0.32); border: none; cursor: not-allowed; border-radius: 4px; color: #999; font-size: 16px;" disabled>Upload</button>
       </div>
     </div>
-  </a-form>
+  </div>
 
   <script>
-    // JavaScript para sincronizar o checkbox real com o fake
     document.querySelectorAll('.ap-checkbox-container').forEach(container => {
       const checkbox = container.querySelector('.ap-checkbox-input');
       const fakeCheckbox = container.querySelector('.icon-checkbox-deselected-fill, .icon-checkbox-selected-fill');
@@ -190,7 +178,6 @@
 
       if (!checkbox || checkbox.disabled) return;
 
-      // Função para atualizar o visual
       function updateCheckboxVisual() {
         if (checkbox.checked) {
           fakeCheckbox.classList.remove('icon-checkbox-deselected-fill');
@@ -201,7 +188,6 @@
         }
       }
 
-      // Eventos de clique no container e no wrapper
       [container, checkboxWrapper].forEach(element => {
         element.addEventListener('click', (e) => {
           if (e.target !== checkbox) {
@@ -211,10 +197,8 @@
         });
       });
 
-      // Evento de mudança no input real
       checkbox.addEventListener('change', updateCheckboxVisual);
 
-      // Suporte para tecla Space/Enter
       checkbox.addEventListener('keydown', (e) => {
         if (e.key === ' ' || e.key === 'Enter') {
           e.preventDefault();
