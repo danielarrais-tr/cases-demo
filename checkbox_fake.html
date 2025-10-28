@@ -1,211 +1,234 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<!doctype html>
+<html lang="en" data-theme="black">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkbox Test</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upload Options</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --bg: #111;
+      --panel: #181818;
+      --text: #e8e8e8;
+      --muted: #9aa0a6;
+      --border: #2a2a2a;
+      --accent: #4f8cff;
+      --accent-contrast: #fff;
+      --disabled: #555;
     }
 
+    /* Page */
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      padding: 40px;
-      background-color: #f5f5f5;
+      margin: 0;
+      font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 10% 0%, #151515 0%, var(--bg) 60%);
+      display: grid;
+      place-items: center;
+      min-height: 100dvh;
     }
 
-    a-form {
-      display: block;
-      background-color: white;
-      padding: 24px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      max-width: 660px;
-      margin: 0 auto;
+    .modal {
+      width: min(720px, 92vw);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.5);
+      overflow: hidden;
     }
 
-    /* Checkbox Container */
+    .modal__header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .modal__title {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: .2px;
+    }
+
+    form {
+      padding: 20px 22px 24px;
+    }
+
+    /* Checkbox group (mirrors the structure you sent) */
     .ap-checkbox-container {
       display: flex;
       align-items: center;
-      margin-bottom: 16px;
-      cursor: pointer;
+      gap: 10px;
+      min-height: 24px;
+      margin: 12px 0;
     }
 
-    .ap-checkbox-container:last-child {
-      margin-bottom: 0;
-    }
-
-    /* Checkbox Wrapper */
     .ap-checkbox {
       position: relative;
       width: 24px;
       height: 24px;
-      margin-right: 8px;
-      cursor: pointer;
-    }
-
-    .ap-checkbox-disabled {
-      cursor: not-allowed;
-      opacity: 0.5;
-    }
-
-    /* Hidden Accessibility Container */
-    .a-hidden-accessibility {
-      position: absolute;
-      width: 24px;
-      height: 24px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-    }
-
-    /* Real Checkbox Input (hidden) - BUG REPRODUCTION
-       The input has zero dimensions making it invisible to WebDriver
-       even though the visual fake checkbox is visible */
-    .ap-checkbox-input {
-      position: absolute;
-      opacity: 0;
-      width: 0;
-      height: 0;
-      margin: 0;
-      padding: 0;
-      /* This causes WebDriver to consider the element not clickable */
-    }
-
-    /* Fake Checkbox (Icon) */
-    .icon-checkbox-deselected-fill,
-    .icon-checkbox-selected-fill {
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .ap-checkbox-input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      cursor: inherit;
+    }
+
+    /* Visual box */
+    .icon-checkbox-deselected-fill {
       width: 24px;
       height: 24px;
-      border: 2px solid #333;
-      border-radius: 4px;
-      background-color: white;
-      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--muted);
+      border-radius: 6px;
+      transition: border-color .2s, background-color .2s, transform .03s ease;
     }
 
-    .icon-checkbox-selected-fill {
-      background-color: #333;
-      border-color: #333;
+    .ap-checkbox:hover .icon-checkbox-deselected-fill {
+      border-color: #c9d1d9;
     }
 
-    .icon-checkbox-selected-fill::before {
-      content: '✓';
-      color: white;
+    .ap-checkbox-input:focus-visible + .icon-checkbox-deselected-fill {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Checkmark state */
+    .ap-checkbox-input:checked + .icon-checkbox-deselected-fill {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .ap-checkbox-input:checked + .icon-checkbox-deselected-fill::before {
+      content: "✔";
       font-size: 16px;
-      font-weight: bold;
+      line-height: 1;
+      translate: 0 1px;
+      color: var(--accent-contrast);
     }
 
-    .icon-checkbox-backdrop-outline {
-      display: none;
+    /* Disabled state */
+    .ap-checkbox-disabled { cursor: not-allowed; }
+    .ap-checkbox-disabled .icon-checkbox-deselected-fill {
+      border-color: var(--disabled);
+      background: transparent;
+      opacity: .6;
     }
+    .ap-checkbox-disabled .ap-checkbox-input { cursor: not-allowed; }
 
     /* Label */
     .ap-checkbox-label {
       cursor: pointer;
-      font-size: 16px;
-      color: #333;
+      color: var(--text);
+      letter-spacing: .2px;
       user-select: none;
     }
 
-    .ap-checkbox-container:has(.ap-checkbox-disabled) .ap-checkbox-label {
-      cursor: not-allowed;
-      color: #999;
+    /* Secondary backdrop ring (optional, decorative) */
+    .icon-checkbox-backdrop-outline {
+      position: absolute;
+      inset: 0;
+      border-radius: 8px;
+      pointer-events: none;
     }
 
-    /* Hover Effects */
-    .ap-checkbox:not(.ap-checkbox-disabled):hover .icon-checkbox-deselected-fill,
-    .ap-checkbox:not(.ap-checkbox-disabled):hover .icon-checkbox-selected-fill {
-      border-color: #555;
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
     }
 
-    /* Focus Styles */
-    .ap-checkbox-input:focus + .icon-checkbox-deselected-fill,
-    .ap-checkbox-input:focus + .icon-checkbox-selected-fill {
-      outline: 2px solid #4A90E2;
-      outline-offset: 2px;
+    .btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #202124;
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
     }
+    .btn.primary { background: var(--accent); color: var(--accent-contrast); border-color: transparent; }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* Small helper text */
+    .hint { color: var(--muted); font-size: 13px; margin-left: 34px; margin-top: -4px; }
   </style>
 </head>
 <body>
-  <div style="padding: 20px; background-color: #f5f5f5;">
-    <div style="background-color: white; max-width: 700px; margin: 0 auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-      <div style="padding: 20px; border-bottom: 1px solid #ddd;">
-        <h2 style="margin: 0; font-size: 20px;">Upload Data Files</h2>
-      </div>
-      <div style="padding: 20px;">
-        <a-form>
-          <div role="presentation" style="background-color: #f2f2f2; padding: 60px 20px; text-align: center; margin-bottom: 20px; border-radius: 4px; border: 2px dashed #ccc;">
-            <p style="margin: 0; font-size: 16px; color: #666;">
-              Drag and drop, <span style="text-decoration: underline; cursor: pointer;">or choose your file</span>
-            </p>
-          </div>
-          <div>
-            <div class="ap-checkbox-container" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Unzipcheckbox" data-theme="black">
-              <div class="ap-checkbox">
-                <div class="a-hidden-accessibility">
-                  <input type="checkbox" role="checkbox" aria-live="assertive" aria-label="Unzip any compressed files" id="checkbox-7" tabindex="0" class="ap-checkbox-input" value="">
-                </div><span class="Appkit4-icon icon-checkbox-deselected-fill" aria-hidden="true" id=""></span><span class="icon-checkbox-backdrop-outline" aria-hidden="true"></span>
-              </div><label class="ap-checkbox-label" for="checkbox-7" aria-hidden="true">Unzip any compressed files</label>
-            </div>
-            <div class="ap-checkbox-container MDDCheckbox" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Mddcheckbox" data-theme="black">
-              <div class="ap-checkbox ap-checkbox-disabled">
-                <div class="a-hidden-accessibility">
-                  <input type="checkbox" role="checkbox" aria-live="assertive" aria-label="Allow Workspace asset metadata to be discovered outside this Workspace" aria-disabled="true" aria-checked="false" id="checkbox-8" tabindex="0" disabled class="ap-checkbox-input" value="">
-                </div><span class="Appkit4-icon icon-checkbox-deselected-fill" aria-hidden="true" id=""></span><span class="icon-checkbox-backdrop-outline" aria-hidden="true"></span>
-              </div><label class="ap-checkbox-label" for="checkbox-8" aria-hidden="true">Allow Workspace asset metadata to be discovered outside this Workspace</label>
-            </div>
-          </div>
-        </a-form>
-      </div>
-      <div style="padding: 20px; border-top: 1px solid #ddd; display: flex; justify-content: space-between;">
-        <button style="padding: 8px 20px; background: transparent; border: none; cursor: pointer; font-size: 16px;">Cancel</button>
-        <button style="padding: 8px 20px; background: rgba(208, 74, 2, 0.32); border: none; cursor: not-allowed; border-radius: 4px; color: #999; font-size: 16px;" disabled>Upload</button>
-      </div>
+  <div class="modal" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Modal">
+    <div class="modal__header">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7zM5 18h14v2H5z"/></svg>
+      <h1 class="modal__title">Add data</h1>
     </div>
+
+    <form aria-labelledby="form-title" id="upload-options-form">
+      <h2 id="form-title" style="position:absolute;left:-9999px">Upload options</h2>
+
+      <!-- 1) Unzip any compressed files -->
+      <div class="ap-checkbox-container" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Unzipcheckbox" data-theme="black">
+        <div class="ap-checkbox">
+          <input type="checkbox"
+                 id="checkbox-unzip"
+                 class="ap-checkbox-input"
+                 role="checkbox"
+                 aria-label="Unzip any compressed files"
+                 aria-live="polite" />
+          <span class="Appkit4-icon icon-checkbox-deselected-fill" aria-hidden="true"></span>
+          <span class="icon-checkbox-backdrop-outline" aria-hidden="true"></span>
+        </div>
+        <label class="ap-checkbox-label" for="checkbox-unzip" aria-hidden="true">Unzip any compressed files</label>
+      </div>
+
+      <!-- 2) Allow Workspace asset metadata to be discovered outside this Workspace (disabled) -->
+      <div class="ap-checkbox-container MDDCheckbox" id="My_Data_App_DocumentLibrary_AddData_ModalUploadData_Mddcheckbox" data-theme="black">
+        <div class="ap-checkbox ap-checkbox-disabled">
+          <input type="checkbox"
+                 id="checkbox-discoverable"
+                 class="ap-checkbox-input"
+                 disabled
+                 role="checkbox"
+                 aria-disabled="true"
+                 aria-checked="false"
+                 aria-label="Allow Workspace asset metadata to be discovered outside this Workspace" />
+          <span class="Appkit4-icon icon-checkbox-deselected-fill" aria-hidden="true"></span>
+          <span class="icon-checkbox-backdrop-outline" aria-hidden="true"></span>
+        </div>
+        <label class="ap-checkbox-label" for="checkbox-discoverable" aria-hidden="true">Allow Workspace asset metadata to be discovered outside this Workspace</label>
+      </div>
+      <p class="hint">This option is managed by your administrator.</p>
+
+      <div class="actions">
+        <button type="button" class="btn" onclick="document.getElementById('upload-options-form').reset()">Reset</button>
+        <button type="submit" class="btn primary">Upload</button>
+      </div>
+    </form>
   </div>
 
   <script>
-    document.querySelectorAll('.ap-checkbox-container').forEach(container => {
-      const checkbox = container.querySelector('.ap-checkbox-input');
-      const fakeCheckbox = container.querySelector('.icon-checkbox-deselected-fill, .icon-checkbox-selected-fill');
-      const checkboxWrapper = container.querySelector('.ap-checkbox');
+    // Demo: handle submit
+    document.getElementById('upload-options-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const unzip = document.getElementById('checkbox-unzip').checked;
+      alert(`Submitted:\n- Unzip compressed files: ${unzip ? 'Yes' : 'No'}`);
+    });
 
-      if (!checkbox || checkbox.disabled) return;
-
-      function updateCheckboxVisual() {
-        if (checkbox.checked) {
-          fakeCheckbox.classList.remove('icon-checkbox-deselected-fill');
-          fakeCheckbox.classList.add('icon-checkbox-selected-fill');
-        } else {
-          fakeCheckbox.classList.remove('icon-checkbox-selected-fill');
-          fakeCheckbox.classList.add('icon-checkbox-deselected-fill');
-        }
-      }
-
-      [container, checkboxWrapper].forEach(element => {
-        element.addEventListener('click', (e) => {
-          if (e.target !== checkbox) {
-            checkbox.checked = !checkbox.checked;
-            updateCheckboxVisual();
-          }
-        });
-      });
-
-      checkbox.addEventListener('change', updateCheckboxVisual);
-
-      checkbox.addEventListener('keydown', (e) => {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          checkbox.checked = !checkbox.checked;
-          updateCheckboxVisual();
-        }
-      });
+    // Micro-interaction: click ripple (optional)
+    document.querySelectorAll('.ap-checkbox').forEach(box => {
+      box.addEventListener('mousedown', () => box.querySelector('.icon-checkbox-deselected-fill')?.style.setProperty('transform','scale(0.95)'));
+      box.addEventListener('mouseup', () => box.querySelector('.icon-checkbox-deselected-fill')?.style.removeProperty('transform'));
+      box.addEventListener('mouseleave', () => box.querySelector('.icon-checkbox-deselected-fill')?.style.removeProperty('transform'));
     });
   </script>
 </body>
